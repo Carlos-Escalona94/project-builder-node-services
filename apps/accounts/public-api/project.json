@@ -1,0 +1,50 @@
+{
+  "name": "accounts-public-api",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/accounts/public-api/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/accounts/public-api",
+        "main": "apps/accounts/public-api/src/main.ts",
+        "tsConfig": "apps/accounts/public-api/tsconfig.app.json",
+        "assets": ["apps/accounts/public-api/src/assets"],
+        "isolatedConfig": true,
+        "webpackConfig": "apps/accounts/public-api/webpack.config.js"
+      },
+      "configurations": {
+        "development": {},
+        "production": {}
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "accounts-public-api:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "accounts-public-api:build:development"
+        },
+        "production": {
+          "buildTarget": "accounts-public-api:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/accounts/public-api/**/*.ts"]
+      }
+    }
+  },
+  "tags": []
+}

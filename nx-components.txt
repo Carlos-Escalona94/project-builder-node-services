@@ -1,0 +1,27 @@
+https://nevra.medium.com/setting-up-a-full-stack-web-application-using-nx-workspace-4b035bb63a80
+
+curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+pnpm install -g create-nx-workspace@latest
+
+create-nx-workspace
+
+integrated => apps
+
+pnpm install -D @nx/node
+
+nx g @nx/node:lib dummy-lib
+
+nx build dummy-lib
+
+nx publish dummy-lib
+
+.
+.
+.
+
+nx g @nx/node:lib dummy-lib-dependencie --unitTestRunner=none
+
+nx g @nx/node:app dummy-app
+
+nx g @nx/node:app dummy-webpack-app --bundler=webpack --unitTestRunner=none --e2eTestRunner=none

@@ -1,0 +1,50 @@
+{
+  "name": "accounts-infra",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/accounts/infra/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/accounts/infra",
+        "main": "apps/accounts/infra/src/main.ts",
+        "tsConfig": "apps/accounts/infra/tsconfig.app.json",
+        "assets": ["apps/accounts/infra/src/assets"],
+        "isolatedConfig": true,
+        "webpackConfig": "apps/accounts/infra/webpack.config.js"
+      },
+      "configurations": {
+        "development": {},
+        "production": {}
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "accounts-infra:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "accounts-infra:build:development"
+        },
+        "production": {
+          "buildTarget": "accounts-infra:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/accounts/infra/**/*.ts"]
+      }
+    }
+  },
+  "tags": []
+}

@@ -1,0 +1,237 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  accounts
+
+Transform:
+  - AWS::Serverless-2016-10-31
+
+Parameters:
+  ENV:
+    Description: Required. Environment dev/test/prod
+    Type: String
+    Default: prod
+    AllowedValues:
+      - dev
+      - test
+      - prod
+  DeployBucket:
+    Description: Required. DeployBucket
+    Type: string
+
+# Globals:
+#   Api:
+#     EndpointConfiguration: REGIONAL
+
+Resources:
+
+  PublicApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'accounts-public-api'
+      Description: 'Teste'
+      Handler: main.lambdaHandler
+      CodeUri: 
+        Key: 'dist/accounts/lambdas/accounts-public-api.zip'
+        Bucket: !Ref DeployBucket
+      MemorySize: 256
+      Timeout: 900
+      Runtime: nodejs18.x
+      # Policies:
+      #   - Statement:
+      #     - Effect: Allow
+      #       Action:
+      #         - 'dynamodb:*'
+      #       Resource: '*'
+
+  # MessageInQueueFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     FunctionName: 'whatsapp-message-in-queue-app'
+  #     Description: 'Teste'
+  #     Handler: main.lambdaHandler
+  #     CodeUri: 
+  #       Key: 'dist/whatsapp/lambdas/whatsapp-message-in-queue-app.zip'
+  #       Bucket: !Sub 'ringer-${ENV}-deploys'
+  #     MemorySize: 256
+  #     Timeout: 900
+  #     Runtime: nodejs18.x
+  #     Policies:
+  #       - Statement:
+  #         - Effect: Allow
+  #           Action:
+  #             - 'dynamodb:*'
+  #           Resource: '*'
+
+  # WebhookNotificationFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     FunctionName: 'whatsapp-webhook-notification-app'
+  #     Description: 'Teste'
+  #     Handler: main.lambdaHandler
+  #     CodeUri: 
+  #       Key: 'dist/whatsapp/lambdas/whatsapp-webhook-notification-app.zip'
+  #       Bucket: !Sub 'ringer-${ENV}-deploys'
+  #     MemorySize: 256
+  #     Timeout: 900
+  #     Runtime: nodejs18.x
+  #     Events:
+  #       SQSQueueEvent:
+  #         Type: SQS
+  #         Properties:
+  #           Queue: !GetAtt WebhookNotificationSQS.Arn
+  #           BatchSize: 2
+  #     Policies:
+  #       - Statement:
+  #         - Effect: Allow
+  #           Action:
+  #             - 'dynamodb:*'
+  #           Resource: '*'
+
+  # WebhookValidationFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     FunctionName: 'whatsapp-webhook-validation-app'
+  #     Description: 'Teste'
+  #     Handler: main.lambdaHandler
+  #     CodeUri: 
+  #       Key: 'dist/whatsapp/lambdas/whatsapp-webhook-validation-app.zip'
+  #       Bucket: !Sub 'ringer-${ENV}-deploys'
+  #     MemorySize: 256
+  #     Timeout: 900
+  #     Runtime: nodejs18.x
+  #     Policies:
+  #       - Statement:
+  #         - Effect: Allow
+  #           Action:
+  #             - 'dynamodb:*'
+  #           Resource: '*'
+
+  # WebhookNotificationSQS:
+  #   Type: AWS::SQS::Queue
+  #   Properties:
+  #     QueueName: whatsapp-webhook-notification-sqs
+  #     MaximumMessageSize: 262144
+  #     DelaySeconds: 0
+  #     MessageRetentionPeriod: 172800
+  #     ReceiveMessageWaitTimeSeconds: 2
+  #     VisibilityTimeout: 1000
+  #     RedrivePolicy:
+  #       deadLetterTargetArn: !GetAtt WebhookNotificationDLQSQS.Arn
+  #       maxReceiveCount: 3
+
+  # WebhookNotificationDLQSQS:
+  #   Type: AWS::SQS::Queue
+  #   Properties:
+  #     QueueName: whatsapp-webhook-notification-dlq-sqs
+  #     MaximumMessageSize: 262144
+  #     DelaySeconds: 0
+  #     MessageRetentionPeriod: 1209600
+  #     ReceiveMessageWaitTimeSeconds: 20
+  #     VisibilityTimeout: 300
+
+  # WebhookNotificationApi:
+  #   Type: AWS::Serverless::Api
+  #   DependsOn:
+  #     - WebhookNotificationApiRole
+  #   Properties:
+  #     # Name: whatsapp-webhook-notification-api
+  #     StageName: Staging
+  #     EndpointConfiguration:
+  #       Type: REGIONAL
+  #     DefinitionBody:
+  #       swagger: "2.0"
+  #       info:
+  #         title: whatsapp-webhook-notification-api
+  #         description: "teste"
+  #         version: 1.0
+  #       # x-amazon-apigateway-request-validator: ""
+  #       paths:
+  #         "/":
+  #           post:
+  #             produces:
+  #               - application/json
+  #             responses:
+  #               "202":
+  #                 description: on sucess
+  #               "400":
+  #                 description: invalid request body
+  #             x-amazon-apigateway-integration:
+  #               type: AWS
+  #               httpMethod: POST
+  #               passthroughBehavior: NEVER
+  #               requestParameters:
+  #                 integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+  #               requestTemplates:
+  #                 "application/json": "Action=SendMessage&MessageBody=$util.urlEncode($input.body)"
+  #               credentials: !GetAtt WebhookNotificationApiRole.Arn
+  #               uri:
+  #                 !Sub "arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${WebhookNotificationSQS.QueueName}"
+  #               responses:
+  #                 default:
+  #                   statusCode: "202"
+  #                   responseTemplates:
+  #                     application/json: '{"message": "notification received"}'
+  #           get:
+  #             produces:
+  #               - application/json
+  #             responses:
+  #               "202":
+  #                 description: on sucess
+  #               "400":
+  #                 description: invalid request body
+  #             x-amazon-apigateway-integration:
+  #               type: aws_proxy
+  #               httpMethod: POST
+  #               passthroughBehavior: when_no_match
+  #               # requestParameters:
+  #               #   integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+  #               # requestTemplates:
+  #               #   "application/json": "Action=SendMessage&MessageBody=$util.urlEncode($input.body)"
+  #               credentials: !GetAtt WebhookNotificationApiRole.Arn
+  #               uri:
+  #                 !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebhookValidationFunction.Arn}/invocations"
+  #               responses:
+  #                 default:
+  #                   statusCode: "202"
+  #                   responseTemplates:
+  #                     application/json: '{"message": "notification received"}'
+
+  # WebhookNotificationApiRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service:
+  #               - apigateway.amazonaws.com
+  #           Action:
+  #             - sts:AssumeRole
+  #     Policies:
+  #       - PolicyName: SendMessageToSQSPolicy
+  #         PolicyDocument:
+  #           Version: 2012-10-17
+  #           Statement:
+  #             Effect: Allow
+  #             Action: sqs:SendMessage
+  #             Resource: '*'
+  #       - PolicyName: InvokeLambdaPolicy
+  #         PolicyDocument:
+  #           Version: 2012-10-17
+  #           Statement:
+  #             Effect: Allow
+  #             Action: 'lambda:*'
+  #             Resource: '*'
+
+  # UrlMapping:
+  #   Type: AWS::ApiGateway::BasePathMapping
+  #   DependsOn: 
+  #     - WebhookNotificationApi
+  #   Properties:
+  #     BasePath: webhook
+  #     DomainName: 'channels.dev.ringer.app.br'
+  #     RestApiId: !Ref WebhookNotificationApi
+  #     Stage: !Ref WebhookNotificationApi.Stage
+
+  
